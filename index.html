@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Calculators</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            background-color: #1e1e1e;
+            color: white;
+            margin: 0;
+            padding: 16px;
+        }
+        
+        .calculator-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #2d2d2d;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .calculator-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #3d3d3d;
+        }
+        
+        .strategy-selector {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background-color: #252525;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        
+        .strategy-button {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+        
+        .strategy-button.active {
+            background-color: #3b71fe;
+            font-weight: bold;
+        }
+        
+        .strategy-button:hover:not(.active) {
+            background-color: #3d3d3d;
+        }
+        
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .input-field {
+            flex: 1;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: normal;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #3d3d3d;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        
+        /* Remove spinner/arrows from number inputs */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        
+        /* For Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            background-color: #454545;
+        }
+        
+        input::placeholder {
+            color: #888;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3b71fe;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #2a5cd9;
+        }
+        
+        .result-container {
+            background-color: #252525;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .result-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr 1fr;
+            padding: 12px 15px;
+            border-bottom: 1px solid #3d3d3d;
+            font-weight: bold;
+            background-color: #333;
+        }
+        
+        .result-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr 1fr;
+            padding: 12px 15px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .result-label {
+            color: #4a8dff;
+        }
+        
+        .price-input {
+            width: 100%;
+            padding: 5px;
+            background-color: #3d3d3d;
+            border: none;
+            border-radius: 3px;
+            color: #fff;
+        }
+        
+        .avg-price {
+            color: #4ade80;
+            font-weight: bold;
+            text-align: right;
+        }
+        
+        .leverage-calculator .result-container,
+        .risk-reward-calculator .result-container {
+            padding: 15px;
+        }
+        
+        .leverage-calculator .result-row,
+        .risk-reward-calculator .result-row {
+            display: flex;
+            justify-content: space-between;
+            grid-template-columns: none;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Green leverage value styling */
+        .green-value {
+            color: #4ade80 !important;
+            font-weight: bold !important;
+        }
+        
+        /* Risk Reward Calculator specific styles - UPDATED */
+        .risk-reward-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .risk-reward-item {
+            background-color: #252525;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .risk-reward-header {
+            background-color: #333;
+            padding: 8px;
+            font-weight: bold;
+            text-align: center;
+            color: white;
+        }
+        
+        .risk-reward-content {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .result-boxes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .result-box {
+            text-align: center;
+            padding: 15px;
+            background-color: #333;
+            border-radius: 5px;
+        }
+        
+        .result-box-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .result-box-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff5555; /* Default red color */
+        }
+        
+        .result-box-value.positive {
+            color: #4ade80;
+        }
+        
+        .targets-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .target-item {
+            background-color: #252525;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .target-header {
+            background-color: #333;
+            padding: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            color: white;
+        }
+        
+        .target-content {
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .target-content input {
+            padding: 5px;
+            font-size: 12px;
+        }
+        
+        .target-content label {
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+        
+        .input-small {
+            padding: 6px !important;
+            font-size: 12px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="calculator-title" id="calculator-title">
+            Trading Calculator
+        </div>
+        
+        <div class="strategy-selector">
+            <div class="strategy-button active" id="double-up-rebuy">Double-Up Rebuy</div>
+            <div class="strategy-button" id="triple-up-rebuy">Triple-Up Rebuy</div>
+            <div class="strategy-button" id="double-up-trade">Double-Up Trade</div>
+            <div class="strategy-button" id="leverage">Leverage</div>
+            <div class="strategy-button" id="risk-reward">Risk Reward</div>
+        </div>
+        
+        <!-- Double/Triple Up Calculator Inputs -->
+        <div class="rebuy-calculator" id="rebuy-calculator">
+            <div class="input-group">
+                <div class="input-field">
+                    <label for="totalOrderSize">Total Order Size ($)</label>
+                    <input type="number" id="totalOrderSize" placeholder="Enter total asset size">
+                </div>
+                <div class="input-field">
+                    <label for="numberOfRebuys">Number of Rebuys</label>
+                    <input type="number" id="numberOfRebuys" placeholder="Enter number of rebuys" min="1" max="5">
+                </div>
+            </div>
+            
+            <button id="calculateOrderBtn">Calculate Order Sizes</button>
+            
+            <div class="result-container">
+                <div class="result-header">
+                    <span>Order</span>
+                    <span>Size ($)</span>
+                    <span>Buy Price</span>
+                    <span>Avg Price</span>
+                </div>
+                <div id="ordersContainer">
+                    <!-- Order rows will be generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Leverage Calculator -->
+        <div class="leverage-calculator hidden" id="leverage-calculator">
+            <div class="input-group">
+                <div class="input-field">
+                    <label for="maxLoss">Max Loss (%)</label>
+                    <input type="number" id="maxLoss" placeholder="Enter max loss percentage" step="0.1" min="0">
+                </div>
+                <div class="input-field">
+                    <label for="stopLoss">Stop Loss (%)</label>
+                    <input type="number" id="stopLoss" placeholder="Enter stop loss percentage" step="0.1" min="0">
+                </div>
+            </div>
+            
+            <button id="calculateLeverageBtn">Calculate Leverage</button>
+            
+            <div class="result-container">
+                <div class="result-row">
+                    <span class="result-label">Max Loss</span>
+                    <span class="result-value" id="maxLossDisplay">0.00%</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Stop Loss</span>
+                    <span class="result-value" id="stopLossDisplay">0.00%</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Leverage</span>
+                    <span style="color: #4ade80 !important; font-weight: bold !important;" id="leverageDisplay">0x</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Risk Reward Calculator -->
+        <div class="risk-reward-calculator hidden" id="risk-reward-calculator">
+            <div class="risk-reward-grid">
+                <div class="risk-reward-item">
+                    <div class="risk-reward-header">Position Type</div>
+                    <div class="risk-reward-content">
+                        <select id="positionType">
+                            <option value="long">Long</option>
+                            <option value="short" selected>Short</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="risk-reward-item">
+                    <div class="risk-reward-header">Margin/Capital</div>
+                    <div class="risk-reward-content">
+                        <input type="number" id="accountMargin" value="1000" step="0.01">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="risk-reward-grid">
+                <div class="risk-reward-item">
+                    <div class="risk-reward-header">Entry Price</div>
+                    <div class="risk-reward-content">
+                        <input type="number" id="entryPrice" value="5.0" step="0.000001">
+                    </div>
+                </div>
+                
+                <div class="risk-reward-item">
+                    <div class="risk-reward-header">Stop Loss Price</div>
+                    <div class="risk-reward-content">
+                        <input type="number" id="slPrice" value="6.0" step="0.000001">
+                    </div>
+                </div>
+            </div>
+            
+            <button id="calculateRiskRewardBtn">Calculate Risk/Reward</button>
+            
+            <div class="result-boxes">
+                <div class="result-box">
+                    <div class="result-box-title">Risk/Reward Ratio</div>
+                    <div class="result-box-value" id="rrRatio">1.00</div>
+                </div>
+                <div class="result-box">
+                    <div class="result-box-title">True Risk/Reward</div>
+                    <div class="result-box-value" id="trrRatio">0.69</div>
+                </div>
+            </div>
+            
+            <div class="targets-grid">
+                <div class="target-item">
+                    <div class="target-header">TP1</div>
+                    <div class="target-content">
+                        <label>Price</label>
+                        <input type="number" class="target-price input-small" data-index="1" value="4.5" step="0.000001">
+                        <label>Margin</label>
+                        <input type="number" class="target-margin input-small" data-index="1" value="500" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="target-item">
+                    <div class="target-header">TP2</div>
+                    <div class="target-content">
+                        <label>Price</label>
+                        <input type="number" class="target-price input-small" data-index="2" value="4.25" step="0.000001">
+                        <label>Margin</label>
+                        <input type="number" class="target-margin input-small" data-index="2" value="250" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="target-item">
+                    <div class="target-header">TP3</div>
+                    <div class="target-content">
+                        <label>Price</label>
+                        <input type="number" class="target-price input-small" data-index="3" step="0.000001">
+                        <label>Margin</label>
+                        <input type="number" class="target-margin input-small" data-index="3" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="target-item">
+                    <div class="target-header">TP4</div>
+                    <div class="target-content">
+                        <label>Price</label>
+                        <input type="number" class="target-price input-small" data-index="4" step="0.000001">
+                        <label>Margin</label>
+                        <input type="number" class="target-margin input-small" data-index="4" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="target-item">
+                    <div class="target-header">TP5</div>
+                    <div class="target-content">
+                        <label>Price</label>
+                        <input type="number" class="target-price input-small" data-index="5" step="0.000001">
+                        <label>Margin</label>
+                        <input type="number" class="target-margin input-small" data-index="5" step="0.01">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="targets-grid">
+                <div class="target-item">
+                    <div class="target-header">TP6</div>
+                    <div class="target-content">
+                        <label>Price</label>
+                        <input type="number" class="target-price input-small" data-index="6" step="0.000001">
+                        <label>Margin</label>
+                        <input type="number" class="target-margin input-small" data-index="6" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="target-item">
+                    <div class="target-header">TP7</div>
+                    <div class="target-content">
+                        <label>Price</label>
+                        <input type="number" class="target-price input-small" data-index="7" step="0.000001">
+                        <label>Margin</label>
+                        <input type="number" class="target-margin input-small" data-index="7" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="target-item">
+                    <div class="target-header">TP8</div>
+                    <div class="target-content">
+                        <label>Price</label>
+                        <input type="number" class="target-price input-small" data-index="8" step="0.000001">
+                        <label>Margin</label>
+                        <input type="number" class="target-margin input-small" data-index="8" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="target-item">
+                    <div class="target-header">TP9</div>
+                    <div class="target-content">
+                        <label>Price</label>
+                        <input type="number" class="target-price input-small" data-index="9" step="0.000001">
+                        <label>Margin</label>
+                        <input type="number" class="target-margin input-small" data-index="9" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="target-item">
+                    <div class="target-header">TP10</div>
+                    <div class="target-content">
+                        <label>Price</label>
+                        <input type="number" class="target-price input-small" data-index="10" step="0.000001">
+                        <label>Margin</label>
+                        <input type="number" class="target-margin input-small" data-index="10" step="0.01">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements - calculator containers
+            const calculatorTitle = document.getElementById('calculator-title');
+            const rebuyCalculator = document.getElementById('rebuy-calculator');
+            const leverageCalculator = document.getElementById('leverage-calculator');
+            const riskRewardCalculator = document.getElementById('risk-reward-calculator');
+            
+            // DOM elements - strategy buttons (CHANGED: using direct IDs now)
+            const doubleUpRebuyBtn = document.getElementById('double-up-rebuy');
+            const tripleUpRebuyBtn = document.getElementById('triple-up-rebuy');
+            const doubleUpTradeBtn = document.getElementById('double-up-trade');
+            const leverageBtn = document.getElementById('leverage');
+            const riskRewardBtn = document.getElementById('risk-reward');
+            
+            // DOM elements - rebuy calculator
+            const totalOrderSizeInput = document.getElementById('totalOrderSize');
+            const numberOfRebuysInput = document.getElementById('numberOfRebuys');
+            const calculateOrderBtn = document.getElementById('calculateOrderBtn');
+            const ordersContainer = document.getElementById('ordersContainer');
+            
+            // DOM elements - leverage calculator
+            const maxLossInput = document.getElementById('maxLoss');
+            const stopLossInput = document.getElementById('stopLoss');
+            const calculateLeverageBtn = document.getElementById('calculateLeverageBtn');
+            const maxLossDisplay = document.getElementById('maxLossDisplay');
+            const stopLossDisplay = document.getElementById('stopLossDisplay');
+            const leverageDisplay = document.getElementById('leverageDisplay');
+            
+            // DOM elements - risk reward calculator
+            const positionType = document.getElementById('positionType');
+            const accountMargin = document.getElementById('accountMargin');
+            const entryPrice = document.getElementById('entryPrice');
+            const slPrice = document.getElementById('slPrice');
+            const calculateRiskRewardBtn = document.getElementById('calculateRiskRewardBtn');
+            const rrRatio = document.getElementById('rrRatio');
+            const trrRatio = document.getElementById('trrRatio');
+            const targetPrices = document.querySelectorAll('.target-price');
+            const targetMargins = document.querySelectorAll('.target-margin');
+            
+            // Current strategy
+            let currentStrategy = 'double-up-rebuy';
+            
+            // Strategy button click handlers - COMPLETELY REVISED APPROACH
+            doubleUpRebuyBtn.addEventListener('click', function() {
+                switchToStrategy('double-up-rebuy');
+            });
+            
+            tripleUpRebuyBtn.addEventListener('click', function() {
+                switchToStrategy('triple-up-rebuy');
+            });
+            
+            doubleUpTradeBtn.addEventListener('click', function() {
+                switchToStrategy('double-up-trade');
+            });
+            
+            leverageBtn.addEventListener('click', function() {
+                switchToStrategy('leverage');
+            });
+            
+            riskRewardBtn.addEventListener('click', function() {
+                switchToStrategy('risk-reward');
+            });
+            
+            // Switch to specified strategy
+            function switchToStrategy(strategy) {
+                console.log("Switching to strategy:", strategy);
+                
+                // Update current strategy
+                currentStrategy = strategy;
+                
+                // Update active button
+                const allButtons = [doubleUpRebuyBtn, tripleUpRebuyBtn, doubleUpTradeBtn, leverageBtn, riskRewardBtn];
+                allButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Add active class to selected button
+                document.getElementById(strategy).classList.add('active');
+                
+                // Hide all calculators
+                rebuyCalculator.classList.add('hidden');
+                leverageCalculator.classList.add('hidden');
+                riskRewardCalculator.classList.add('hidden');
+                
+                // Show selected calculator
+                if (strategy === 'leverage') {
+                    leverageCalculator.classList.remove('hidden');
+                    calculatorTitle.textContent = 'Leverage Calculator';
+                } else if (strategy === 'risk-reward') {
+                    riskRewardCalculator.classList.remove('hidden');
+                    calculatorTitle.textContent = 'Risk/Reward Calculator';
+                    calculateRiskReward(); // Calculate initial values
+                } else {
+                    rebuyCalculator.classList.remove('hidden');
+                    
+                    // Update title based on strategy
+                    if (strategy === 'double-up-rebuy') {
+                        calculatorTitle.textContent = 'Double-Up Rebuy Calculator';
+                    } else if (strategy === 'triple-up-rebuy') {
+                        calculatorTitle.textContent = 'Triple-Up Rebuy Calculator';
+                    } else if (strategy === 'double-up-trade') {
+                        calculatorTitle.textContent = 'Double-Up Trade Calculator';
+                    }
+                    
+                    // Clear any existing data
+                    ordersContainer.innerHTML = '';
+                }
+            }
+            
+            // Handle calculation of order sizes
+            calculateOrderBtn.addEventListener('click', calculateOrderSizes);
+            
+            // Handle calculation of leverage
+            calculateLeverageBtn.addEventListener('click', calculateLeverage);
+            
+            // Handle calculation of risk/reward
+            calculateRiskRewardBtn.addEventListener('click', calculateRiskReward);
+            
+            // Auto-calculate risk/reward when inputs change
+            [positionType, accountMargin, entryPrice, slPrice].forEach(input => {
+                input.addEventListener('input', calculateRiskReward);
+            });
+            
+            // Calculate order sizes based on selected strategy
+            function calculateOrderSizes() {
+                const totalSize = parseFloat(totalOrderSizeInput.value) || 0;
+                const numRebuys = parseInt(numberOfRebuysInput.value) || 0;
+                
+                if (totalSize <= 0 || numRebuys <= 0 || numRebuys > 5) {
+                    alert('Please enter valid values. Total size must be greater than 0 and number of rebuys between 1 and 5.');
+                    return;
+                }
+                
+                // Clear previous results
+                ordersContainer.innerHTML = '';
+                
+                let orders = [];
+                
+                if (currentStrategy === 'double-up-rebuy') {
+                    // Double-Up Rebuy calculation: 1-2-4-8-16-32
+                    let totalUnits = 0;
+                    let units = [1];
+                    
+                    // Calculate units for each rebuy (doubling each time)
+                    for (let i = 1; i <= numRebuys; i++) {
+                        units.push(Math.pow(2, i));
+                    }
+                    
+                    // Calculate total units
+                    totalUnits = units.reduce((sum, unit) => sum + unit, 0);
+                    
+                    // Calculate unit value
+                    const unitValue = totalSize / totalUnits;
+                    
+                    // Create entry order
+                    orders.push({
+                        name: 'Entry',
+                        size: unitValue * units[0],
+                        class: 'entry'
+                    });
+                    
+                    // Create rebuy orders
+                    for (let i = 1; i <= numRebuys; i++) {
+                        orders.push({
+                            name: `RB${i}`,
+                            size: unitValue * units[i],
+                            class: `rb${i}`
+                        });
+                    }
+                } else if (currentStrategy === 'triple-up-rebuy') {
+                    // Triple-Up Rebuy calculation: 1-3-9-27-81-243
+                    let totalUnits = 0;
+                    let units = [1];
+                    
+                    // Calculate units for each rebuy (tripling each time)
+                    for (let i = 1; i <= numRebuys; i++) {
+                        units.push(Math.pow(3, i));
+                    }
+                    
+                    // Calculate total units
+                    totalUnits = units.reduce((sum, unit) => sum + unit, 0);
+                    
+                    // Calculate unit value
+                    const unitValue = totalSize / totalUnits;
+                    
+                    // Create entry order
+                    orders.push({
+                        name: 'Entry',
+                        size: unitValue * units[0],
+                        class: 'entry'
+                    });
+                    
+                    // Create rebuy orders
+                    for (let i = 1; i <= numRebuys; i++) {
+                        orders.push({
+                            name: `RB${i}`,
+                            size: unitValue * units[i],
+                            class: `rb${i}`
+                        });
+                    }
+                } else if (currentStrategy === 'double-up-trade') {
+                    // Double-Up Trade calculation: 1-1-2-4-8-16
+                    let totalUnits = 0;
+                    let units = [1];
+                    
+                    // First rebuy is same size as entry (1), then double for each subsequent rebuy
+                    for (let i = 1; i <= numRebuys; i++) {
+                        units.push(i === 1 ? 1 : Math.pow(2, i-1));
+                    }
+                    
+                    // Calculate total units
+                    totalUnits = units.reduce((sum, unit) => sum + unit, 0);
+                    
+                    // Calculate unit value
+                    const unitValue = totalSize / totalUnits;
+                    
+                    // Create entry order
+                    orders.push({
+                        name: 'Entry',
+                        size: unitValue * units[0],
+                        class: 'entry'
+                    });
+                    
+                    // Create rebuy orders
+                    for (let i = 1; i <= numRebuys; i++) {
+                        orders.push({
+                            name: `RB${i}`,
+                            size: unitValue * units[i],
+                            class: `rb${i}`
+                        });
+                    }
+                }
+                
+                // Create and append order rows
+                orders.forEach(order => {
+                    const orderRow = document.createElement('div');
+                    orderRow.className = 'result-row';
+                    orderRow.innerHTML = `
+                        <span class="result-label">${order.name}</span>
+                        <span class="result-value">${order.size.toFixed(2)}</span>
+                        <span><input type="number" class="price-input" placeholder="Price" data-order="${order.class}"></span>
+                        <span class="avg-price">$0.00</span>
+                    `;
+                    ordersContainer.appendChild(orderRow);
+                });
+                
+                // Add event listeners to price inputs
+                const priceInputs = document.querySelectorAll('.price-input');
+                priceInputs.forEach(input => {
+                    input.addEventListener('input', updateAveragePrices);
+                });
+            }
+            
+            // Update average prices when price inputs change
+            function updateAveragePrices() {
+                const priceInputs = document.querySelectorAll('.price-input');
+                const orderRows = document.querySelectorAll('.result-row');
+                
+                let totalInvested = 0;
+                let totalSize = 0;
+                
+                // Calculate running totals and update average prices
+                for (let i = 0; i < orderRows.length; i++) {
+                    const sizeText = orderRows[i].querySelector('.result-value').textContent;
+                    const size = parseFloat(sizeText) || 0;
+                    
+                    const priceInput = orderRows[i].querySelector('.price-input');
+                    const price = parseFloat(priceInput.value) || 0;
+                    
+                    if (price > 0) {
+                        totalInvested += size;
+                        totalSize += size / price;
+                        
+                        // Calculate and update average price
+                        const avgPrice = totalSize > 0 ? totalInvested / totalSize : 0;
+                        orderRows[i].querySelector('.avg-price').textContent = `${avgPrice.toFixed(2)}`;
+                    }
+                }
+            }
+            
+            // Calculate leverage based on max loss and stop loss
+            function calculateLeverage() {
+                const maxLoss = parseFloat(maxLossInput.value) || 0;
+                const stopLoss = parseFloat(stopLossInput.value) || 0;
+                
+                if (maxLoss <= 0 || stopLoss <= 0) {
+                    alert('Please enter valid values for Max Loss and Stop Loss percentages.');
+                    return;
+                }
+                
+                // Update display values
+                maxLossDisplay.textContent = maxLoss.toFixed(2) + '%';
+                stopLossDisplay.textContent = stopLoss.toFixed(2) + '%';
+                
+                // Calculate leverage (max loss divided by stop loss)
+                let leverage = 0;
+                if (stopLoss > 0) {
+                    leverage = maxLoss / stopLoss;
+                    // Always round down to the nearest integer
+                    leverage = Math.floor(leverage);
+                }
+                
+                // Update leverage display with green color and integer value
+                leverageDisplay.textContent = leverage + 'x';
+            }
+            
+            // UPDATED Risk/Reward calculation function based on Excel
+            function calculateRiskReward() {
+                const isLong = positionType.value === 'long';
+                const entry = parseFloat(entryPrice.value) || 0;
+                const stopLoss = parseFloat(slPrice.value) || 0;
+                const initialMargin = parseFloat(accountMargin.value) || 0;
+                
+                // Validate basic inputs
+                if (entry <= 0 || stopLoss <= 0 || initialMargin <= 0) {
+                    return;
+                }
+                
+                // Get all take profit inputs
+                const takeProfits = [];
+                const targetInputs = document.querySelectorAll('.target-price');
+                const marginInputs = document.querySelectorAll('.target-margin');
+                
+                for (let i = 0; i < targetInputs.length; i++) {
+                    const price = parseFloat(targetInputs[i].value) || 0;
+                    const margin = parseFloat(marginInputs[i].value) || 0;
+                    
+                    if (price > 0 && margin > 0) {
+                        takeProfits.push({ price, margin });
+                    }
+                }
+                
+                // If no take profits entered, we can't calculate anything
+                if (takeProfits.length === 0) {
+                    rrRatio.textContent = "0.00";
+                    trrRatio.textContent = "0.0000";
+                    
+                    // Set color to red for no values
+                    rrRatio.style.color = '#ff5555';
+                    trrRatio.style.color = '#ff5555';
+                    return;
+                }
+                
+                // Use the last take profit as the target
+                const lastTP = takeProfits[takeProfits.length - 1];
+                const target = lastTP.price;
+                
+                // Calculate risk and reward for regular R:R
+                let risk, reward, rr;
+                
+                if (isLong) {
+                    // For long positions
+                    risk = entry - stopLoss;
+                    reward = target - entry;
+                } else {
+                    // For short positions
+                    risk = stopLoss - entry;
+                    reward = entry - target;
+                }
+                
+                // Calculate R:R ratio
+                rr = reward / risk;
+                
+                // Calculate True R:R (TRR)
+                let trr = 0;
+                
+                if (risk > 0) {
+                    // Calculate contributions from all TPs
+                    let contributions = 0;
+                    takeProfits.forEach(tp => {
+                        contributions += tp.margin * (entry - tp.price);
+                    });
+                    
+                    // Final TRR calculation
+                    trr = contributions / (-risk * initialMargin);
+                }
+                
+                // Display results
+                const absRR = Math.abs(rr);
+                const absTRR = Math.abs(trr);
+                
+                rrRatio.textContent = absRR.toFixed(2);
+                trrRatio.textContent = absTRR.toFixed(4);
+                
+                // Apply colors directly as inline styles
+                // For Risk/Reward Ratio
+                if (absRR >= 2) {
+                    rrRatio.style.color = '#4ade80';  // Green for >= 2
+                } else if (absRR >= 1) {
+                    rrRatio.style.color = '#ffdd33';  // Yellow for 1-2
+                } else {
+                    rrRatio.style.color = '#ff5555';  // Red for < 1
+                }
+                
+                // For True Risk/Reward
+                if (absTRR >= 2) {
+                    trrRatio.style.color = '#4ade80';  // Green for >= 2
+                } else if (absTRR >= 1) {
+                    trrRatio.style.color = '#ffdd33';  // Yellow for 1-2
+                } else {
+                    trrRatio.style.color = '#ff5555';  // Red for < 1
+                }
+            }
+            
+            // Add event listeners for target price/margin inputs
+            targetPrices.forEach(input => {
+                input.addEventListener('input', calculateRiskReward);
+            });
+            
+            targetMargins.forEach(input => {
+                input.addEventListener('input', calculateRiskReward);
+            });
+            
+            // Initialize the UI
+            switchToStrategy('double-up-rebuy');
+        });
+    </script>
+</body>
+</html>
